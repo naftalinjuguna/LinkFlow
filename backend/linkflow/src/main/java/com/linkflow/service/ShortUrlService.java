@@ -40,7 +40,7 @@ public class ShortUrlService {
         shortUrl.setOriginalUrl(request.getOriginalUrl());
         shortUrl.setShortCode(shortCode);
         shortUrl.setUser(currentUser);
-        shortUrl.setExpiresAt(request.getExpiresAt());
+        shortUrl.setExpirationDate(request.getExpiresAt());
 
         ShortUrl savedShortUrl = shortUrlRepository.save(shortUrl);
         return mapToResponse(savedShortUrl);
@@ -55,7 +55,7 @@ public class ShortUrlService {
                 shortUrl.getShortCode(),
                 baseUrl + "/" + shortUrl.getShortCode(),
                 shortUrl.getCreatedAt(),
-                shortUrl.getExpiresAt()
+                shortUrl.getExpirationDate()
         );
         return response;
     }

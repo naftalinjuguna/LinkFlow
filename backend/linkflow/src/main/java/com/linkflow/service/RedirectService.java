@@ -28,9 +28,9 @@ public class RedirectService {
     public String getOriginalUrl(String shortCode, String ipAddress, String userAgent, String referer) {
 
         ShortUrl shortUrl = shortUrlRepository.findByShortCode(shortCode).orElseThrow(
-            () -> ResponseStatusException(HttpStatus.NOT_FOUND, "ShortUrl not found"));
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ShortUrl not found"));
 
-        if(shortUrl.getExpiresAt() != null && !shortUrl.getExpiresAt().isAfter(LocalDateTime.now())) {
+        if(shortUrl.getExpirationDate() != null && !shortUrl.getExpirationDate().isAfter(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.GONE, "ShortUrl has expired");
         }
 
