@@ -5,9 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import com.linkflow.dto.AuthResponse;
 import com.linkflow.dto.RegisterRequest;
+import com.linkflow.dto.RegisterResponse;
+import com.linkflow.dto.LoginRequest;
 import com.linkflow.entity.Role;
 import com.linkflow.entity.User;
 import com.linkflow.repository.UserRepository;
@@ -20,15 +24,19 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
 
         if(userRepository.existsByEmail(request.getEmail())){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
@@ -46,18 +54,39 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        return mapToResponse(savedUser);
+        RegisterResponse response = new RegisterResponse(
+                savedUser.getId(),
+                savedUser.getName(),
+                savedUser.getEmail()
+        );
+
+        return response;
 
     }
 
-    private AuthResponse mapToResponse(User user) {
+    @Transactional(readOnly = true)
+    public AuthResponse login(LoginRequest request) {
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+
+        String token = jwtService.generateToken(user.getEmail());
+
+        return mapToResponse(user, token);
+    }
+
+    private AuthResponse mapToResponse(User user, String token) {
         AuthResponse response = new AuthResponse(
                 user.getId(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                token
         );
 
         return response;
     }
+
 
 }
