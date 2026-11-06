@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 
-
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:8080")
 public class AuthController {
 
     private final AuthService authService;
@@ -24,7 +24,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authService.register(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")

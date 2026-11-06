@@ -8,7 +8,12 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import com.linkflow.security.CustomUserDetailsService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.http.HttpMethod;
 
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -30,4 +35,25 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http, DaoAuthenticationProvider authenticationProvider)
+            throws Exception {
+
+        http.authenticationProvider(authenticationProvider);
+        http
+                .cors(cors -> {
+                    List.of("http://localhost:8080");
+                })
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(form -> form.disable())
+                .httpBasic(httpBasic -> httpBasic.disable());
+
+        return http.build();
+    }
 }

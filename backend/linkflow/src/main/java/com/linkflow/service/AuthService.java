@@ -16,6 +16,11 @@ import com.linkflow.entity.Role;
 import com.linkflow.entity.User;
 import com.linkflow.repository.UserRepository;
 import com.linkflow.repository.RoleRepository;
+import com.linkflow.security.JwtService;
+
+
+
+
 
 
 @Service
@@ -38,7 +43,7 @@ public class AuthService {
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
 
-        if(userRepository.existsByEmail(request.getEmail())){
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
         }
 
@@ -87,6 +92,5 @@ public class AuthService {
 
         return response;
     }
-
 
 }
